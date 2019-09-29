@@ -1,7 +1,7 @@
 ### C++ Gdiplus grid component
 
-**In this work:**
-- 
-- 
+![alt](./screenshot.png)
 
-### How to use guide
+**In this work:**
+- Independent on OS C++ graphics component "String Grid" (`StringGrid.h` and `StringGrid.cpp`)
+- Flexible height of the elements, equal width for columns
