@@ -31,6 +31,9 @@ LRESULT WINAPI Window::WndStartupProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCT* createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
 	Window* const window = reinterpret_cast<Window * const>(createStruct->lpCreateParams);
 
+	// Because it will be needed in WM_SIZE but CreateWindow will not return it before it called WM_SIZE event
+	window->hWnd = hWnd;
+
 	SetLastError(ERROR_SUCCESS);
 
 	if (SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG>(window)) == FALSE && GetLastError() != ERROR_SUCCESS)
@@ -58,13 +61,33 @@ LRESULT Window::HandlerOnSizing(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 	RECT clientRect;
 	if (GetClientRect(self->hWnd, &clientRect) == FALSE)
-		throw Exception(L"Failed to recalculate client window rect when sizing");
+		throw Exception(L"Failed to recalculate client window rect");
 
-	self->clientWidth = clientRect.right - clientRect.left;
-	self->clientHeight = clientRect.bottom - clientRect.top;
+	self->clientWidth = clientRect.right;
+	self->clientHeight = clientRect.bottom;
 
 	if (self->REDRAW_WINDOW_CONTENT_WHEN_SIZING)
 		InvalidateRect(self->hWnd, NULL, FALSE);
+
+	return 0;
+}
+
+LRESULT Window::HandlerOnSize(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, Window* self)
+{
+	self->windowWidth = LOWORD(lParam);
+	self->windowHeight = HIWORD(wParam);
+
+	RECT clientRect;
+	if (GetClientRect(self->hWnd, &clientRect) == FALSE)
+	{
+		DWORD error = GetLastError();
+		throw Exception(L"Failed to recalculate client window rect");
+	}
+
+	self->clientWidth = clientRect.right;
+	self->clientHeight = clientRect.bottom;
+
+	InvalidateRect(self->hWnd, NULL, FALSE);
 
 	return 0;
 }
@@ -101,12 +124,13 @@ Window::Window(std::wstring windowName)
 	this->windowName = windowName;
 	this->hInst = GetModuleHandle(NULL);
 	this->hWnd = NULL;
-	this->windowWidth = Window::DEFAULT_WINDOW_WIDTH;
-	this->windowHeight = Window::DEFAULT_WINDOW_HEIGHT;
-	this->clientWidth = 0;
-	this->clientHeight = 0;
+	this->windowWidth = NULL;
+	this->windowHeight = NULL;
+	this->clientWidth = NULL;
+	this->clientHeight = NULL;
 
 	this->SetActionHandler(WM_SIZING, reinterpret_cast<Window::ActionHandler>(Window::HandlerOnSizing), reinterpret_cast<void*>(this));
+	this->SetActionHandler(WM_SIZE, reinterpret_cast<Window::ActionHandler>(Window::HandlerOnSize), reinterpret_cast<void*>(this));
 }
 
 void Window::Create()
@@ -114,9 +138,10 @@ void Window::Create()
 	if (this->hWnd != NULL)
 		throw Exception(L"Failed to Create window: window has been already created");
 
-	this->hWnd = CreateWindow(Window::WND_CLASS_NAME, windowName.c_str(), WS_VISIBLE | WS_OVERLAPPEDWINDOW, 0, 0,
-		this->windowWidth, this->windowHeight, NULL, NULL,
-		this->hInst, reinterpret_cast<LPVOID>(this));
+	this->hWnd = CreateWindow(Window::WND_CLASS_NAME, windowName.c_str(), WS_VISIBLE | WS_OVERLAPPEDWINDOW, 
+		Window::DEFAULT_WINDOW_POS_X, Window::DEFAULT_WINDOW_POS_Y,
+		Window::DEFAULT_WINDOW_WIDTH, Window::DEFAULT_WINDOW_HEIGHT, 
+		NULL, NULL, this->hInst, reinterpret_cast<LPVOID>(this));
 
 	if (this->hWnd == INVALID_HANDLE_VALUE)
 		throw Exception(L"Failed to create main window");

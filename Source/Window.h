@@ -28,6 +28,7 @@ private:
 	static LRESULT WINAPI WndProxyProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static LRESULT HandlerOnSizing(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, Window* self);
+	static LRESULT HandlerOnSize(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, Window* self);
 
 	void CalculateWindowProperties();
 
@@ -48,6 +49,8 @@ private:
 	static constexpr const wchar_t* WND_CLASS_NAME = L"MainWindow";
 	static constexpr const int32_t DEFAULT_WINDOW_WIDTH = 1280;
 	static constexpr const int32_t DEFAULT_WINDOW_HEIGHT = 720;
+	static constexpr const int32_t DEFAULT_WINDOW_POS_X = 0;
+	static constexpr const int32_t DEFAULT_WINDOW_POS_Y = 0;
 	static constexpr const bool REDRAW_WINDOW_CONTENT_WHEN_SIZING = true;
 	static constexpr const bool REDRAW_WINDOW_CONTENT_WHEN_DRAGGING = true;
 	static WindowRegisterClass wndRegClass;
