@@ -111,10 +111,12 @@ void Model::FillStringGrid(StringGrid& grid)
 		for (int row = 0; row < Model::GRID_COUNT_ROWS; row++)
 		{
 			grid.SetString(row, col, 
-				std::wstring(L"Row : ") + std::to_wstring(row) + L"\n"
-				+ std::wstring(L"Col: " + std::to_wstring(col)));
+				std::wstring(L"Col : ") + std::to_wstring(col) + L"\n"
+				+ std::wstring(L"Row: " + std::to_wstring(row)));
 		}
 	}
+
+	grid.SetString(2, 2, L"Test new string with big content");
 }
 
 void Model::ContentMeasureFunc(std::wstring string, int& boundingWidth, int& boundingHeight)
